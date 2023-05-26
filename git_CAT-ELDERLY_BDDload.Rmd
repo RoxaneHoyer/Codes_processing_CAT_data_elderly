@@ -1,0 +1,378 @@
+---
+author: "roxane hoyer"
+---
+
+Librairies
+```{r setup, include=FALSE}
+
+library(ggplot2)
+library(ggridges)
+library(viridis)
+library(hrbrthemes)
+library(forcats)
+library(lme4)
+library(car)
+library(plotly)
+library(extrafont)
+library(RColorBrewer)
+library(colorspace)
+library(lsmeans)
+library(LMERConvenienceFunctions)
+library(gridExtra)
+library(multcompView)
+library(emmeans)
+library(tidyverse)
+library(stats) 
+library(ggmosaic)
+library(forcats)
+library(multcomp)
+library(DescTools)
+library(PMCMR)
+library(R.matlab)
+library(magrittr)
+
+```
+
+Path + load/read csv
+```{r}
+rm(list = ls())
+
+filename = "C:/Users/roxan/Desktop/R/R_ELDERLY/Data/CAT_behav_data_elderly_10-05-2021_fulltable.csv"
+
+ModSave_path = "C:/Users/roxan/Desktop/R/R_ELDERLY/Models/"
+BDDSave_path = "C:/Users/roxan/Desktop/R/R_ELDERLY/BDD/"
+GraphSave_path_TTR = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/TTR/"
+GraphSave_path = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/"
+GraphSave_path_AntRep = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/AntRep/"
+GraphSave_path_Miss = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/Miss/"
+GraphSave_path_Outlier = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/Outlier/"
+GraphSave_path_CorRep = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/OK/"
+GraphSave_path_pop = "C:/Users/roxan/Desktop/R/R_ELDERLY/Graph/Socio/"
+OddRatioSave_path = "C:/Users/roxan/Desktop/R/R_ELDERLY/Stats/Models/OddRatios/"
+
+# Lecture CSV
+AllData <- read.csv2(filename, header = TRUE, dec = ".", sep = ";")
+
+
+```
+
+Factorisation + function
+```{r}
+
+AllData$bloc <- as.factor(AllData$bloc) 
+
+CueLRN <- AllData$Cue
+CueLRN <- as.factor(CueLRN)
+levels(CueLRN) = list(Neutral = c("0"), Left = c("1"), Right = c("2"))
+AllData$CueLRN <- CueLRN
+
+AllData$Cue = as.factor(AllData$Cue)
+levels(AllData$Cue) = list(Uninformative=c("0"), Informative=c("1", "2"))
+AllData$Cue <- relevel(AllData$Cue, ref = "Uninformative")
+
+AllData$Dis = as.factor(AllData$Dis)
+levels(AllData$Dis) =  list(NoDis=c("0"), Dis1=c("1"), Dis2=c("2"), Dis3=c("3"))
+AllData$Dis <- relevel(AllData$Dis, ref = "NoDis")
+
+AllData$Tar <- as.factor(AllData$Tar)
+levels(AllData$Tar) <- list(Left=c("1"), Right=c("2"))
+
+AllData$bloc = as.factor(AllData$bloc)
+levels(AllData$bloc) =  list(B1=c("1"), B2=c("2"), B3=c("3"))
+
+AllData$Suj <- as.character(AllData$Suj)
+Age <- substr(AllData$Suj,4,5) ## extrait les caractères de 4 à 5 de Suj
+AllData <- cbind(AllData, Age) ## concatène age brut au dataframe principal
+
+## création d'une nouvelle colonne où l'age brut est remplacé par la tranche d'âge correspondante
+AllData$Age <- as.numeric(as.character(AllData$Age))
+AllData %>%
+mutate(AgeRange = case_when(
+  Age <= 20 ~ "18_20",
+  Age <= 25 ~ "21_25",
+  Age <= 30 ~ "26_30",
+  Age <= 40 ~ "31_40",
+  Age <= 50 ~ "41_50",
+  Age <= 60 ~ "51_60",
+  Age <= 70 ~ "61_70",
+  Age <= 90 ~ "71_90")) %>%
+  filter(AgeRange != "18_20") -> AllData
+
+AllData$AgeRange = as.factor(AllData$AgeRange)
+
+# Ini df reaction times calculation
+AllData_TTR <- AllData
+AllData_TTR %>%  
+  drop_na(TTR) %>%
+  filter(TTR < 4000) %>% 
+  filter(TTR > 0) -> AllData_TTR
+
+# Ini df response type calculation
+AllData_Rep <- AllData
+AllData_Rep %>%
+  mutate(DisAll = Dis) -> AllData_Rep 
+
+AllData_Rep$DisAll = as.factor(AllData_Rep$DisAll)
+levels(AllData_Rep$DisAll) =  list(NoDis=c("NoDis"), Dis=c("Dis1"), Dis=c("Dis2"), Dis=c("Dis3"))
+AllData_Rep$DisAll <- relevel(AllData_Rep$DisAll, ref = "NoDis")
+
+
+# Normalized TTR
+
+AllData_TTR %>%
+  mutate(TTRnorm = TTR) -> AllData_TTR
+
+AllData_TTR %>%
+  group_by(Suj) %>%
+  summarise(TRm = mean(TTR)) -> TRmed_by_suj 
+
+cat("Starting RT normalization", "\n")
+
+for (i in 1:length(TRmed_by_suj$Suj)) {
+  
+  print(TRmed_by_suj$Suj[i])
+  
+  for (ii in 1:length(AllData_TTR$Suj)) {
+   
+  if (TRmed_by_suj$Suj[i] == AllData_TTR$Suj[ii]) {
+    
+    AllData_TTR$TTRnorm[ii] = AllData_TTR$TTRnorm[ii]/TRmed_by_suj$TRm[i]
+
+    }
+  
+  }
+  
+}
+
+cat("RT normalization done", "\n")
+
+AllData %>%
+  group_by(Suj, AgeRange) %>%
+  summarise(time = unique(PERIODE)) -> time
+
+write.csv(time, paste0(BDDSave_path, "time_participants.csv"))
+
+time %>%
+  group_by(AgeRange, time) %>%
+  summarise(cnt = n()) %>%
+    mutate(freq = round(cnt / sum(cnt), 3)) %>% 
+  arrange(desc(freq)) -> time
+
+write.csv(time, paste0(BDDSave_path, "time_agerange.csv"))
+
+
+
+```
+
+RT > 0 ------  Dataframes for calculation and statistics
+```{r}
+
+
+### df for JASP statistics 
+
+# Median RT (NoDis, Dis1, Dis2, Dis3)
+AllData_TTR %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE), median_RT = round(median(TTR), digits = 2)) -> RTmed
+
+# Mean std of positive RT (NoDis)
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, bloc) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange), PERIODE = unique(PERIODE),  mean_SDRT_b = round(sd(TTR), digits = 2)) -> SDRT
+
+# Mean std of positive RT (NoDis) by block
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, bloc) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),SDRT_b1 = round(sd(TTR), digits = 2)) %>%
+  filter(bloc == "B1") -> SDRT_b1
+
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, bloc) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),SDRT_b2 = round(sd(TTR), digits = 2)) %>%
+  filter(bloc == "B2") -> SDRT_b2
+
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, bloc) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),SDRT_b3 = round(sd(TTR), digits = 2)) %>%
+  filter(bloc == "B3") -> SDRT_b3
+
+# ------ Orienting (NoDis Uninf - NoDis Inf)
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, Cue) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTR)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TD = round(TTR[1], digits = 2) - round(TTR[2], digits = 2)) -> TopDownEffect
+
+# ------ Capture (Dis3-Dis1)
+AllData_TTR %>%
+  filter(Dis == "Dis1" | Dis == "Dis3")%>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTR)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect 
+
+# ------ Arousal (NoDis-Dis1)
+AllData_TTR %>%
+  filter(Dis == "NoDis" | Dis == "Dis1")%>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTR)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),AR = round(TTR[1], digits = 2) - round(TTR[2], digits = 2)) -> ArousalEffect 
+
+# ------ (Dis2-Dis1)
+AllData_TTR %>%
+  filter(Dis == "Dis2" | Dis == "Dis1") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTR)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA.Dis21 = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect_Dis2_Dis1
+
+# ------ (Dis3-Dis2)
+AllData_TTR %>%
+  filter(Dis == "Dis3" | Dis == "Dis2") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTR)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA.Dis32 = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect_Dis3_Dis2
+
+
+########### NORMALIZED RT
+
+# ------ Orienting (NoDis Uninf - NoDis Inf)
+AllData_TTR %>%
+  filter(Dis == "NoDis") %>%
+  group_by(Suj, Cue) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTRnorm)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TD = round(TTR[1], digits = 2) - round(TTR[2], digits = 2)) -> TopDownEffect_norm
+
+# ------ Capture (Dis3-Dis1)
+AllData_TTR %>%
+  filter(Dis == "Dis1" | Dis == "Dis3")%>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTRnorm)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect_norm 
+
+# ------ Arousal (NoDis-Dis1)
+AllData_TTR %>%
+  filter(Dis == "NoDis" | Dis == "Dis1")%>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTRnorm)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),AR = round(TTR[1], digits = 2) - round(TTR[2], digits = 2)) -> ArousalEffect_norm 
+
+# ------ (Dis2-Dis1)
+AllData_TTR %>%
+  filter(Dis == "Dis2" | Dis == "Dis1") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTRnorm)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA.Dis21 = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect_Dis2_Dis1_norm
+
+# ------ (Dis3-Dis2)
+AllData_TTR %>%
+  filter(Dis == "Dis3" | Dis == "Dis2") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),TTR = mean(TTRnorm)) %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange),  PERIODE = unique(PERIODE),CA.Dis32 = round(TTR[2], digits = 2) - round(TTR[1], digits = 2)) -> CaptureEffect_Dis3_Dis2_norm
+
+
+```
+
+Response types ------  Dataframes for calculation and statistics
+```{r}
+AllData_Rep <- AllData
+
+# ------ OK
+AllData_Rep_OK <- AllData_Rep
+dplyr::select(AllData_Rep_OK, Suj, OK, Dis, AgeRange) -> AllData_Rep_OK
+
+AllData_Rep_OK %>%
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_OK = sum(OK)/n()*100) -> AllData_Rep_OK 
+
+# ------ CueRep
+AllData_Rep_CueRep <- AllData_Rep
+dplyr::select(AllData_Rep_CueRep, Suj, CueRep, Dis, AgeRange) -> AllData_Rep_CueRep
+
+AllData_Rep_CueRep %>%
+  group_by(Suj, Dis,  AgeRange) %>%
+  dplyr::summarise(pct_CueRep = sum(CueRep)/n()*100) -> AllData_Rep_CueRep
+
+# ------ FA
+AllData_Rep_FA <- AllData_Rep
+dplyr::select(AllData_Rep_FA, Suj, FA, Dis, AgeRange) -> AllData_Rep_FA
+
+AllData_Rep_FA %>%
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_FA = sum(FA)/n()*100)-> AllData_Rep_FA
+
+# ------ DisRep
+AllData_Rep_DisRep <- AllData_Rep
+dplyr::select(AllData_Rep_DisRep, Suj, DisRep, Dis, AgeRange) -> AllData_Rep_DisRep
+
+AllData_Rep_DisRep %>%
+  filter(Dis == "Dis1" | Dis == "Dis2"  | Dis == "Dis3") %>% 
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_DisRep = sum(DisRep)/n()*100) -> AllData_Rep_DisRep
+
+AllData_Rep %>%
+ filter(Dis != "NoDis") -> DisRepbinom
+
+# ------ AntRep
+AllData_Rep_AntRep <- AllData_Rep
+dplyr::select(AllData_Rep_AntRep, Suj, AntRep, Dis, AgeRange) -> AllData_Rep_AntRep
+
+AllData_Rep_AntRep %>%
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_AntRep = sum(AntRep)/n()*100) -> AllData_Rep_AntRep 
+
+AllData_Rep_AntRep <- filter(AllData_Rep_AntRep, Dis == "NoDis" | Dis == "Dis1")
+
+# AntRep binom
+AntRepbinom <- filter(AllData, Dis == "NoDis" | Dis == "Dis1")
+
+# ------ MISS
+AllData_Rep_Miss <- AllData_Rep
+dplyr::select(AllData_Rep_Miss, Suj, Miss, Dis, AgeRange) -> AllData_Rep_Miss
+
+AllData_Rep_Miss %>%
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_Miss = sum(Miss)/n()*100) -> AllData_Rep_Miss 
+
+
+AllData_Rep_Miss2 <- AllData_Rep
+
+AllData_Rep_Miss2 %>%
+  group_by(Suj, Cue, Dis, AgeRange) %>%
+  dplyr::summarise(pct_Miss = sum(Miss)/n()*100) -> AllData_Rep_Miss2 
+
+
+# ------ Outlier
+AllData_Rep_Outlier <- AllData_Rep
+dplyr::select(AllData_Rep_Outlier, Suj, Outlier, Dis, AgeRange) -> AllData_Rep_Outlier
+
+AllData_Rep_Outlier %>%
+  dplyr::filter(Dis == "NoDis") %>%
+  group_by(Suj, Dis, AgeRange) %>%
+  dplyr::summarise(pct_Outlier = sum(Outlier)/n()*100) -> AllData_Rep_Outlier 
+
+Outlierbinom <- filter(AllData, Dis == "NoDis")
+
+AllData %>%
+  group_by(Dis) %>%
+  dplyr::summarise(pct_Outlier = sum(Outlier)/n()*100) -> AllData_Rep_OutlierDis 
+
+AllData %>%
+  group_by(Dis, AgeRange) %>%
+  dplyr::summarise(pct_Outlier = sum(Outlier)/n()*100) -> AllData_Rep_OutlierDisAge
+
+
+```

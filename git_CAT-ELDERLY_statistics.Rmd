@@ -1,0 +1,193 @@
+---
+author: "Roxane Hoyer"
+output: 
+---
+
+Stat model TTRnormalized
+```{r}
+
+model_TTRnorm.a <- lmer(TTRnorm ~ (Dis + Cue + AgeRange)^2 +  (1|Suj),
+                 data = AllData_TTR)
+
+Stat <- Anova(model_TTRnorm.a, type = 'II')
+print(Stat, digits = 3)
+
+emmeans(model_TTRnorm.a, ~ Dis*AgeRange, at=list(Dis=c("Dis3","Dis1"))) %>% contrast(interaction = "pairwise", infer=c(T,T))
+
+library(effectsize)
+summary(model_TTRnorm.a)
+omega_value <- t_to_omega2(2.7,  df = 18)
+interpret_omega_squared(omega_value[1], rules = "cohen1992", log = FALSE)
+
+```
+
+
+
+
+Stat model ok
+```{r}
+
+
+load(file=paste0(ModSave_path_CueRep,"model_OKbinoma.rds"))
+
+# --- Wald test
+StatModmodel_OKbinoma <- Anova(model_OKbinoma, type = 'II')
+save(StatModmodel_OKbinoma, file = paste0(ModSave_path_CueRep,  "Anova_modelmodel_OKbinoma.rds"))
+print(StatModmodel_OKbinoma, digits = 4)
+
+PH_OK_AGE <- emmeans(model_OKbinoma, pairwise ~ Age)
+save(PH_OK_AGE, file = paste0(ModSave_path_OK,  "PH_OK_AGE.rds"))
+print(PH_OK_AGE)
+
+```
+
+Stat model CueRep
+```{r}
+
+model_CueRepbinoma <- glmer(CueRep ~ AgeRange + (1|Suj),
+                 data = AllData, family =binomial("logit"), glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=100000)))
+
+# --- Wald test - NS
+StatModCueRepbinoma <- Anova(model_CueRepbinoma, type = 'II')
+print(StatModCueRepbinoma, digits = 4)
+
+```
+
+Stat model FAbinoma
+```{r}
+
+model_FAbinoma <- glmer(FA ~ AgeRange + (1|Suj),
+                 data = AllData, family = binomial(link = "logit"),control=glmerControl(optimizer ="bobyqa"))
+ # --- Wald test
+StatModFAbinoma <- Anova(model_FAbinoma, type = 'II')
+print(StatModFAbinoma, digits = 4)
+
+
+```
+
+Stat model DisRepbinoma
+```{r}
+
+model_DisRepbinoma <- glmer(DisRep ~ AgeRange + (1|Suj),
+                 data = DisRepbinom, family = binomial("logit"),control=glmerControl(optimizer="bobyqa"))
+
+# --- Wald test
+StatModDisRepbinoma <- Anova(model_DisRepbinoma, type = 'II')
+print(StatModDisRepbinoma, digits = 3)
+
+```
+
+Stat model AntRepbinoma
+```{r}
+
+model_AntRepbinoma <- glmer(AntRep ~ Dis+AgeRange  + (1|Suj),
+                 data = AntRepbinom, family = binomial("logit"),control=glmerControl(optimizer="bobyqa"))
+
+# --- Wald test
+StatModAntRepbinoma <- Anova(model_AntRepbinoma, type = 'II')
+print(StatModAntRepbinoma, digits = 3)
+
+
+PH_ANTREP_AGE <- emmeans(model_AntRepbinoma, pairwise ~ Dis, infer=c(T,T), type = 'response', at=list(Dis=c("Dis1","NoDis")))
+print(PH_ANTREP_AGE)
+
+summary(model_AntRepbinoma)
+
+PH_ANTREP_DIS <- emmeans(model_AntRepbinoma, pairwise ~ Dis, infer=c(T,T), at=list(Dis=c("Dis1","NoDis")))
+print(PH_ANTREP_DIS)
+
+
+PH_ANTREP_DIS <- emmeans(model_AntRepbinoma, pairwise ~ AgeRange, infer=c(T,T))
+print(PH_ANTREP_DIS)
+
+
+
+# --- PH
+PH_AGE <- emmeans(model_AntRepbinoma, pairwise ~ AgeRange, infer=c(T,T), type = "response",  at=list(AgeRange=c("41_50","21_25"))) # si on retire response donne le résultats en unité, sinon montre les odds ratio
+print(PH_AGE)
+
+
+# --- PH
+PH_AGE <- emmeans(model_AntRepbinoma, pairwise ~ AgeRange, infer=c(T,T),  at=list(AgeRange=c("41_50","31_40"))) # si on retire response donne le résultats en unité, sinon montre les odds ratio
+print(PH_AGE)
+
+
+
+interpret_oddsratio(29.5, rules = "cohen1988", log = TRUE)
+
+
+
+
+```
+
+Stat model Missbinoma
+```{r}
+
+# --------- Missbinoma  BEST MODEL -> USED IN THE PAPER
+model_Missbinoma <- glmer(Miss ~ Dis*AgeRange + (1|Suj),
+                 data = AllData, family = binomial("logit"),control=glmerControl(optimizer="bobyqa"))
+
+
+# --- Wald test
+StatModMissbinoma <- Anova(model_Missbinoma, type = 'II')
+print(StatModMissbinoma, digits = 4)
+
+# --- PH
+PH_MISS_AGE <- emmeans(model_Missbinoma, pairwise ~ AgeRange, infer=c(T,T), type = "response", at=list(AgeRange=c("61_70","71_90"))) # si on retire response donne le résultats en unité, sinon montre les odds ratio
+print(PH_MISS_AGE)
+
+
+# --- PH
+PH_MISS_AGE <- emmeans(model_Missbinoma, pairwise ~ AgeRange, infer=c(T,T),  at=list(AgeRange=c("61_70","51_60"))) # si on retire response donne le résultats en unité, sinon montre les odds ratio
+print(PH_MISS_AGE)
+
+summary(model_Missbinoma)
+
+
+# pour obtenir les odds ratio
+PH<- emmeans(model_Missbinoma, pairwise ~ AgeRange, type = "response", reverse = TRUE, infer = c(T,T)) # enlever le log
+print(PH)
+
+
+summary(model_Missbinoma)
+
+
+interpret_oddsratio(0.07, rules = "cohen1988", log = TRUE)
+
+
+
+```
+
+
+
+Stat model Outlierbinomb
+```{r}
+
+model_OutlierNODISbinoma <- glmer(Outlier ~ AgeRange + (1|Suj),
+                 data = filter(AllData, Dis == "NoDis"), family = binomial("logit"))
+# --- Wald test
+StatModOutlierNODISbinoma <- Anova(model_OutlierNODISbinoma, type = 'II')
+print(StatModOutlierNODISbinoma, digits = 3)
+
+
+```
+
+Stat RTSD
+```{r}
+
+
+model_sdRT_NoDis <- lmer(mean_SDRT_b ~ AgeRange + bloc +  (1|Suj),
+                 data = SDRT)
+
+
+StatModmodel_sdRT_NoDis <- Anova(model_sdRT_NoDis, type = 'II')
+print(StatModmodel_sdRT_NoDis, digits = 3)
+
+PH_TTR_AGE <- emmeans(model_sdRT_NoDis, pairwise ~ AgeRange, infer=c(T,T))
+print(PH_TTR_AGE)
+
+PH_TTR_BLOC <- emmeans(model_sdRT_NoDis, pairwise ~ bloc, infer=c(T,T))
+print(PH_TTR_BLOC)
+
+
+```

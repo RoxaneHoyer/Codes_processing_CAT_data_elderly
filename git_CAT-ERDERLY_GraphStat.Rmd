@@ -1,0 +1,2318 @@
+---
+title: "Behav_GraphStat_v1"
+author: "Roxane Hoyer"
+date: "20 novembre 2018"
+output: html_document
+
+## Pour que ce programme fonctionne necessite de lancer prealablement CAT_Behav_BDDload.rmd
+---
+
+
+Graph stat : TTR > 0
+```{r}
+
+
+
+# DISTRIBUTION 
+
+AllData_TTR %>%
+  ggplot(aes(x=TTRnorm)) + 
+  geom_density(fill="darkcyan", alpha = 0.4) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 9),
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Distribution",
+    x = "Angle value") 
+ggsave(paste(GraphSave_path, "Distribution_rtnorm.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+#AGE
+AllData_TTR %>%
+  group_by(Suj) %>%
+  summarise(AgeRange = unique(AgeRange), med = mean(TTR)) %>%
+  ggplot(aes(x = AgeRange, y = med, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5, alpha = .3) +
+  scale_y_continuous(limits = c(200, 1200), breaks = seq(200, 1200, by=200)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94")) +
+  labs(
+    title = "Median RT+ according to age", 
+    x = "Age range (years)", 
+    y = "Mean RT+ (ms)") 
+ggsave(paste(GraphSave_path_TTR, "TTR_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 20)
+
+
+
+#Dis
+AllData_TTR %>%
+  group_by(AgeRange) %>%
+  summarise(med = mean(TTRnorm), 
+            sem  = std_err(TTRnorm))%>%
+  ggplot(aes(
+    x      = AgeRange, 
+    y      = med, 
+    group = 1)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = med-sem, 
+    ymax   = med+sem),
+    width  = .2,
+    size = 1.5,
+    position   = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4), size = 1.5) +
+  labs(
+    title = "Mean median RT according to distractor conditions", 
+    x     = "Distractor condition", 
+    y     = "Mean median RT (ms)") +
+  # scale_y_continuous(limits = c(280, 400), breaks = seq(280, 400, by=20)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+ggsave(paste(GraphSave_path_TTR, "tp.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#Dis
+AllData_TTR %>%
+  group_by(Dis) %>%
+  summarise(med = median(TTR), 
+            sem  = std_err(TTR))%>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = med, 
+    group = 1)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = med-sem, 
+    ymax   = med+sem),
+    width  = .2,
+    size = 1.5,
+    position   = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4), size = 1.5) +
+  labs(
+    title = "Mean median RT according to distractor conditions", 
+    x     = "Distractor condition", 
+    y     = "Mean median RT (ms)") +
+  scale_y_continuous(limits = c(280, 400), breaks = seq(280, 400, by=20)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+ggsave(paste(GraphSave_path_TTR, "TTR_DIS.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+#CUE
+AllData_TTR %>%
+  group_by(Cue) %>%
+  summarise(med = median(TTR), 
+            sem  = std_err(TTR))%>%
+  ggplot(aes(
+    x      = Cue, 
+    y      = med, 
+    group = 1)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = med-sem, 
+    ymax   = med+sem),
+    width  = .2,
+    size = 1.5,
+    position   = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4), size = 1.5) +
+  labs(
+    title = "Mean median RT according to cue condition", 
+    x     = "Cue condition", 
+    y     = "Mean median RT (ms)") +
+  scale_y_continuous(limits = c(350, 370), breaks = seq(350, 370, by=5)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+ggsave(paste(GraphSave_path_TTR, "TTR_CUE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+#Dis*AGE
+AllData_TTR %>%
+  group_by(Dis, AgeRange) %>%
+  summarise(med = median(TTR), 
+            sem  = std_err(TTR))%>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = med, 
+    group  = AgeRange,
+    color = AgeRange)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 3) +
+  geom_line(
+    position  = position_dodge(0.4),
+    size = 1.5
+  ) +
+  geom_errorbar(aes(
+    ymin   = med-sem, 
+    ymax   = med+sem),
+    width  = .1,
+    size = .8,
+    position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean median RT according to distractor condition by age", 
+    x     = "Distractor condition", 
+    y     = "Mean median RT (ms)") +
+  scale_y_continuous(limits = c(200, 800), breaks = seq(200, 800, by=100)) +
+  scale_color_manual(values = c("dodgerblue4", "cornflowerblue", "lightblue4", "navajowhite3" , "salmon3" , "red4", "gray8")) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+ggsave(paste(GraphSave_path_TTR, "TTR_AGE-DIS.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+AllData_TTR %>%
+  group_by(Suj) %>%
+  dplyr::summarise(RT_med = median(TTR), AgeRange = unique(AgeRange)) %>%
+  filter(RT_med > 900) -> x
+
+
+AllData_TTR %>%
+  group_by(Suj) %>%
+  dplyr::summarise(RT_med = median(TTR), AgeRange = unique(AgeRange)) %>%
+  ggplot(aes(x = AgeRange, y = RT_med, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5) +
+  scale_y_continuous(limits = c(200, 1000), breaks = seq(200, 1000, by=100)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_color_viridis(option = "inferno",discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Median RT distribution by age range ", 
+    x = "Age range (years)", 
+    y = "Median RT (ms)") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_RTmed_AGE_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+
+
+AllData_TTR %>%
+  group_by(Suj) %>%
+  dplyr::summarise(RT_med = median(TTR), AgeRange = unique(AgeRange)) %>%
+  ggplot(aes(x = AgeRange, y = RT_med, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5) +
+  scale_y_continuous(limits = c(200, 1000), breaks = seq(200, 1000, by=100)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_color_viridis(option = "inferno",discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Median RT distribution by age range ", 
+    x = "Age range (years)", 
+    y = "Median RT (ms)") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_RTmed_boxplotmed.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+#DIS*CUE
+
+AllData_TTR %>%
+  group_by(Suj, Dis, Cue) %>%
+  summarise(med = mean(TTR)) -> x 
+
+tgc <- summarySE(x, measurevar="med", groupvars=c("Dis","Cue")) # # summarySE provides the standard deviation, standard error of the mean, and a (default 95%) confidence interval
+
+
+x %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = med, 
+    group  = Cue, 
+    linetype = Cue)) +
+  
+  
+  
+  AllData_TTR %>%
+  group_by(Suj, Dis, Cue) %>%
+  summarise(med = median(TTRnorm)) %>%
+  group_by(Dis, Cue) %>%
+  dplyr::summarise(m = median(med), upper = quantile(med,0.95) , lower = quantile(med,0.05)) %>%
+  mutate(q.upper = abs(upper - m), q.lower = abs(m - lower)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = m, 
+    group  = Cue, 
+    linetype = Cue)) +
+  geom_point(position = position_dodge(0.4), size = 2) +
+  geom_line(position  = position_dodge(0.4), size = 1) +
+  geom_errorbar(aes(ymin   = m-q.lower,
+                    ymax   = m+q.upper),
+                width  = .3,
+                position = position_dodge(0.4),
+                size = 1) +
+  labs(
+    title = "Mean normalized RT+ by cue according to distractor and cue conditions", 
+    x     = "Distractor condition", 
+    y     = "Mean normalized RT+") +
+  # scale_y_continuous(limits = c(200, 650), breaks = seq(0, 1, by=50)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    axis.text    = element_text(size  = 14),
+    legend.text = element_text (size = 14),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94")) 
+ggsave(paste(GraphSave_path_TTR, "TTR_DIS-CUE.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+
+### avec quantile
+
+quantile(x$med, probs = seq(0, 1, 0.05))
+
+
+
+AllData_TTR %>%
+  group_by(Suj, Dis, Cue) %>%
+  summarise(med = median(TTR)) %>%
+  group_by(Dis, Cue) %>%
+  dplyr::summarise(m = mean(med), upper = quantile(med,0.95) , lower = quantile(med,0.05)) -> x
+
+
+
+```
+
+TD/CA/AR/CA.Dis2-Dis1/CA.Dis3-Dis2
+```{r}
+
+
+#RT effect
+
+## ----> Effet TD
+
+# effet TD par age
+TopDownEffect %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(TD), sem = std_err(TD)) %>%
+  ggplot(aes(x = AgeRange, y = mean, fill = mean)) +
+  geom_line(group = 1, size = 1.5) +
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2, size = 1.5)+
+  geom_point(stat = "identity", size=3, alpha = .03) +
+  scale_y_continuous(limits = c(-20, +30), breaks = seq(-20, +30, by=10)) +
+  labs(title="Normalized RT+ orienting effect (Uninformative - Informative) according to age", 
+       x="Age range (years)", 
+       y="Voluntary orienting effect") + 
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94"), 
+    legend.position ='none') 
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_TD_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+dodge = position_dodge(width = 0.4)
+
+TopDownEffect_norm %>%
+  ggplot(aes(x = AgeRange, y = TD, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5, alpha = .3) +
+  scale_y_continuous(limits = c(-.4, .4), breaks = seq(-.4, .4, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Normalized RT+ orienting effect (Uninformative - Informative) according to age", 
+       x="Age range (years)", 
+       y="Orienting effect") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TD_AGE_boxplotmean_norm.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+## ----> Effet Arousal
+# AgeRange
+ArousalEffect %>%
+  drop_na(AR) %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(AR), sem = std_err(AR)) %>%
+  ggplot(aes(x = AgeRange, y = mean, fill = mean)) +
+  geom_line(group =1, size = 1.5) +
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2,size = 1.5)+
+  geom_point(stat = "identity", size =3) +
+  scale_y_continuous(limits = c(50, 130), breaks = seq(50, 130, by=10)) +
+  labs(title="Arousal effect according to age range", 
+       x="Age range (years)", 
+       y="Mean RT arousal effect (ms)") + 
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94"), 
+    legend.position ='none') 
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_AR_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+dodge = position_dodge(width = 0.4)
+
+ArousalEffect_norm %>%
+  ggplot(aes(x = AgeRange, y = AR, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  scale_y_continuous(limits = c(-.2, .8), breaks = seq(-.2, .8, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Normalized RT+ facilitation effect of distractor (NoDis - Dis1) according to age", 
+       x="Age range (years)", 
+       y="Facilitation effect")
+ggsave(paste(GraphSave_path_TTR, "Distrib_AR_AGE_boxplotmean_norm2.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+dodge = position_dodge(width = 0.4)
+
+ArousalEffect_norm %>%
+  ggplot(aes(x = AgeRange, y = AR, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  scale_y_continuous(limits = c(-.2, .8), breaks = seq(-.2, .8, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  facet_wrap(~PERIODE) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Normalized RT+ facilitation effect of distractor (NoDis - Dis1) according to age", 
+       x="Age range (years)", 
+       y="Facilitation effect")
+ggsave(paste(GraphSave_path_TTR, "Distrib_AR_AGE_boxplotmean_norm2.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+## ----> Effet Capture
+# AgeRange
+CaptureEffect%>%
+  drop_na(CA) %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(CA), sem = std_err(CA)) %>%
+  ggplot(aes(x = AgeRange, y = mean, fill = mean)) +
+  geom_line(group =1, size = 1.5) +
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2, size = 1.5)+
+  geom_point(stat = "identity", size =3) +
+  scale_y_continuous(limits = c(40, 140), breaks = seq(40, 140, by=10)) +
+  labs(title="Mean RT distraction effect (Dis3 - Dis1) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect") + 
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94"), 
+    legend.position ='none') 
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+dodge = position_dodge(width = 0.4)
+
+CaptureEffect_norm %>%
+  ggplot(aes(x = AgeRange, y = CA, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  scale_y_continuous(limits = c(-.2, 1), breaks = seq(-.2, 1, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Normalized RT+ detrimental effect of distractor (Dis3 - Dis1) according to age", 
+       x="Age range (years)", 
+       y="Detrimental effect")
+ggsave(paste(GraphSave_path_TTR, "Distrib_CA_AGE_boxplotmean_norm2.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+dodge = position_dodge(width = 0.4)
+
+CaptureEffect_norm %>%
+  ggplot(aes(x = AgeRange, y = CA, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  scale_y_continuous(limits = c(-.2, 1), breaks = seq(-.2, 1, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  facet_wrap(~PERIODE) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Normalized RT+ distraction effect (Dis3 - Dis1) according to age", 
+       x="Age range (years)", 
+       y="Distraction effect")
+ggsave(paste(GraphSave_path_TTR, "Distrib_CA_AGE_boxplotmean_norm_period.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+## ----> Effet Capture Dis2-Dis1
+# AgeRange
+CaptureEffect_Dis2_Dis1%>%
+  drop_na(CA.Dis21) %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(CA.Dis21), sem = std_err(CA.Dis21)) %>%
+  ggplot(aes(x = AgeRange, y = mean, fill = mean)) +
+  geom_line(group =1, size = 1.5) +
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2, size = 1.5)+
+  geom_point(stat = "identity", size =3) +
+  scale_y_continuous(limits = c(-20, 50), breaks = seq(-20, 50, by=10)) +
+  labs(title="Mean RT distraction effect (Dis2 - Dis1) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect (ms)") + 
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94"), 
+    legend.position ='none') 
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_Dis2_Dis1_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+dodge = position_dodge(width = 0.4)
+
+CaptureEffect_Dis2_Dis1_norm %>%
+  ggplot(aes(x = AgeRange, y = CA.Dis21, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5) +
+  scale_y_continuous(limits = c(-.4, .8), breaks = seq(-.4, .8, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="RT distraction effect (Dis2 - Dis1) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect (ms)")
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_Dis2_Dis1_AGE_boxplotmean_norm.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+## ----> Effet Capture Dis3-Dis2
+# AgeRange
+CaptureEffect_Dis3_Dis2%>%
+  drop_na(CA.Dis32) %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(CA.Dis32), sem = std_err(CA.Dis32)) %>%
+  ggplot(aes(x = AgeRange, y = mean, fill = mean)) +
+  geom_line(group =1, size = 1.5) +
+  geom_errorbar(aes(ymin=mean-sem, ymax=mean+sem), width=.2, size = 1.5)+
+  geom_point(stat = "identity", size =3) +
+  scale_y_continuous(limits = c(30, 110), breaks = seq(30, 110, by=10)) +
+  labs(title="Mean RT distraction effect (Dis3 - Dis2) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect (ms)") + 
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94"), 
+    legend.position ='none') 
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_Dis3_Dis2_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+CaptureEffect_Dis3_Dis2_norm %>%
+  ggplot(aes(x = AgeRange, y = CA.Dis32, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5) +
+  scale_y_continuous(limits = c(-.4, .8), breaks = seq(-.4, .8, by=.2)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="RT distraction effect (Dis3 - Dis2) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect (ms)")
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_Dis3_Dis2_AGE_boxplotmean_norm.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+
+############### TEST CI
+CaptureEffect_Dis3_Dis2 %>%
+  ggplot(aes(x = AgeRange, y = CA.Dis32, fill = AgeRange)) +
+  stat_summary(fun.data = mean_cl_normal) +
+  geom_jitter(color="black", size=0.5) +
+  scale_y_continuous(limits = c(-100, 300), breaks = seq(-100, 300, by=100)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-90"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="RT distraction effect (Dis3 - Dis2) according to age range", 
+       x="Age range (years)", 
+       y="Distraction effect (ms)")
+ggsave(paste(GraphSave_path_TTR, "Effect_TTR_CA_Dis3_Dis2_AGE_boxplotmean_test.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+```
+
+Graph stat : OK
+```{r}
+
+
+
+AllData_Rep_OK %>%
+  group_by(Dis) %>%
+  summarise(pct = mean(pct_OK)) -> x
+
+dodge = position_dodge(width = 0.4)
+
+AllData_Rep_OK %>%
+  ggplot(aes(x = AgeRange, y = pct_OK, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  # scale_y_continuous(limits = c(0, 80), breaks = seq(0, 80, by=10)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Mean correct response according to age", 
+    x     = "Age range (years)", 
+    y     = "Mean correct response (%)") 
+ggsave(paste(GraphSave_path_CorRep, "OK_AGE_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+dodge = position_dodge(width = 0.4)
+
+AllData_Rep_OK %>%
+  ggplot(aes(x = AgeRange, y = pct_OK, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  # scale_y_continuous(limits = c(0, 80), breaks = seq(0, 80, by=10)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  facet_wrap(~Dis, ncol =1)+
+  theme_bw() +
+  theme(
+    strip.text.x = element_text(color = "black", size = 12, face = "bold"),
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Mean correct response according to age", 
+    x     = "Age range (years)", 
+    y     = "Mean correct response (%)") 
+ggsave(paste(GraphSave_path_CorRep, "OK_AGE_DIS_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 20)
+
+#DIS*AGE
+AllData_stat_Rep_OK %>%
+  group_by(Dis, Age) %>%
+  summarise(mean = mean(pct_OK), 
+            sem  = std_err(pct_OK)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = mean, 
+    group  = Dis, 
+    colour = Dis)) +
+  geom_point(position = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4)) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                position =position_dodge(0.4)) +
+  labs(
+    title = "Mean correct response by distractor conditions", 
+    x     = "Age (year)", 
+    y     = "Mean correct response (%)") +
+  scale_y_continuous(limits = c(40, 100), breaks = seq(40,100, by=10)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path, "z-Stat_OK_DIS-AGE.png"), type = 'cairo')
+
+
+
+#AGE
+AllData_stat_Rep_OK  %>%
+  group_by(Age) %>%
+  summarise(mean = mean(pct_OK), 
+            sem  = std_err(pct_OK)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = mean, 
+    group  = 1)) +
+  geom_line(
+    group  = 1, 
+    colour = "green3", 
+    size   = 1,
+    position  = position_dodge(0.4)) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    colour = "green4",
+    position   = position_dodge(0.4)) +
+  geom_point(
+    colour = "green4", 
+    size  = 2,
+    position = position_dodge(0.4)) +
+  labs(
+    title = "Mean correct response according to age", 
+    x     = "Age (year)", 
+    y     = "Mean correct response (%)") +
+  scale_y_continuous(limits = c(50, 90), breaks = seq(50,90, by=10)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path, "z-Stat_OK_AGE.png"), type = 'cairo')
+
+
+```
+
+Graph stat : CueRep
+```{r}
+
+
+```
+
+Graph stat : FA
+```{r}
+
+
+#AGE
+AllData_Rep_FA %>%
+  group_by(Age) %>%
+  summarise(mean = mean(pct_FA), 
+            sem  = std_err(pct_FA)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), colour = "gold",
+             size = 4) +
+  geom_line(position  = position_dodge(0.4), colour = "gold",
+            size = 1.5) +             
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = 1.5, 
+                position   = position_dodge(0.4), colour = "gold") +
+  labs(
+    title = "Mean percentage of random response according to age", 
+    x     = "Age (year)", 
+    y     = "Mean random response (%)") +
+  scale_y_continuous(limits = c(4, 8), breaks = seq(4,8, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_FA, "FA_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#DIS
+AllData_Rep_FAp  %>%
+  group_by(Dis) %>%
+  summarise(mean = mean(pct_FA), 
+            sem  = std_err(pct_FA)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4),
+             size = 3) +
+  geom_line(position  = position_dodge(0.4),
+            size = .8) +             
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = .5, 
+                position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean percentage of random response according to distractor", 
+    x     = "Distractor condition", 
+    y     = "Mean random response (%)") +
+  scale_y_continuous(limits = c(0, 4), breaks = seq(0,4, by=0.5)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_FA, "FA_DIS.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#cUElrn
+AllData_stat_Rep_FA  %>%
+  group_by(CueLRN) %>%
+  summarise(mean = mean(pct_FA), 
+            sem  = std_err(pct_FA)) %>%
+  ggplot(aes(
+    x      = CueLRN, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4),
+             size = 3) +
+  geom_line(position  = position_dodge(0.4),
+            size = 1              ) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = .5, 
+                color = "darkslategray",
+                position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean percentage of false alarm according to cue condition", 
+    x     = "Age (year)", 
+    y     = "Mean false alarm (%)") +
+  scale_y_continuous(limits = c(0, 5), breaks = seq(0,5, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_FA, "FA_CUE.png"), type = 'cairo')
+
+
+
+
+
+
+
+#CUE*AGE*SEXE
+AllData_stat_Rep_FA  %>%
+  group_by(Age, CueLRN, sexe) %>%
+  summarise(meanFA = mean(pct_FA), 
+            semFA  = std_err(pct_FA)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = meanFA, 
+    fill = CueLRN)) +
+  geom_bar(stat="identity")+
+  facet_wrap(~sexe)+
+  theme_minimal() +
+  
+  ggsave(paste(GraphSave_path_FA, "FA_CUE-AGE-SEXE.png"), type = 'cairo')
+
+
+AllData_stat_Rep_FA  %>%
+  filter(CueLRN == "Neutral") %>%
+  group_by(Age, sexe) %>%
+  summarise(meanFA = mean(pct_FA), 
+            semFA  = std_err(pct_FA)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = meanFA)) +
+  geom_bar(stat="identity")+
+  theme_minimal() +
+  ggsave(paste(GraphSave_path_FA, "FA_CUEN-AGE-SEXE.png"), type = 'cairo')
+
+
+```
+
+Graph stat : DisRep
+```{r}
+
+
+#CUE
+AllData_stat_Rep_DisRep  %>%
+  group_by(CueLRN) %>%
+  summarise(mean = mean(pct_DisRep), 
+            sem  = std_err(pct_DisRep)) %>%
+  ggplot(aes(
+    x      = CueLRN, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), size = 2) +
+  geom_line(position  = position_dodge(0.4), size = 1) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = 1,
+                position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean distractor response acording to cue condition", 
+    x     = "Cue condition", 
+    y     = "Mean distractor response (%)") +
+  scale_y_continuous(limits = c(5, 10), breaks = seq(5,10, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_DisRep, "DisRep_CUE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+#AGE
+AllData_Rep_DisRep  %>%
+  group_by(Age) %>%
+  summarise(mean = mean(pct_DisRep), 
+            sem  = std_err(pct_DisRep)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), colour = "sienna2",
+             size = 4) +
+  geom_line(position  = position_dodge(0.4), colour = "sienna2", 
+            size = 1.5) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = 1.5,
+                position   = position_dodge(0.4), colour = "sienna2") +
+  labs(
+    title = "Mean distractor response according to age", 
+    x     = "Age (year)", 
+    y     = "Mean distractor response (%)") +
+  scale_y_continuous(limits = c(2, 10), breaks = seq(2,10, by=2)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_DisRep, "DisRep_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#Dis
+AllData_Rep_DisRep%>%
+  group_by(Dis) %>%
+  summarise(mean = mean(pct_DisRep), 
+            sem  = std_err(pct_DisRep)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4)) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean distractor response according to distractor condition", 
+    x     = "Distractor condition", 
+    y     = "Mean distractor response (%)") +
+  scale_y_continuous(limits = c(0, 15), breaks = seq(0,15, by=2)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_DisRep, "DisRep_DIS.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#DIS*AGE
+AllData_Rep_DisRep %>%
+  group_by(Dis, Age) %>%
+  summarise(mean = mean(pct_DisRep), 
+            sem  = std_err(pct_DisRep)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = mean, 
+    group  = Dis, 
+    colour = Dis)) +
+  geom_point(size = 2) +
+  geom_line(size = .8) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = .5) +
+  scale_color_manual(values=c('gray8','tan2')) +
+  labs(
+    title = "Mean distractor response according to age ", 
+    x     = "Age (year)", 
+    y     = "Mean distractor response (%)") +
+  scale_y_continuous(limits = c(0, 18), breaks = seq(0,18, by=2)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_DisRep, "DisRep_DIS-AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+```
+
+Graph stat : AntRep
+```{r}
+
+
+#DIS
+AllData_Rep_AntRep  %>%
+  group_by(Dis) %>%
+  dplyr::summarise(mean = mean(pct_AntRep), 
+                   sem  = std_err(pct_AntRep)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), colour = "red4", 
+             size = 4) +
+  geom_line(position  = position_dodge(0.4), colour = "red4", 
+            size = 1.5) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = 1.5,
+                position   = position_dodge(0.4), colour = "red4") +
+  labs(
+    title = "Mean anticipated response according to distractor condition", 
+    x     = "Anticipated condition", 
+    y     = "Mean anticipated response (%)") +
+  scale_y_continuous(limits = c(0, 6), breaks = seq(0, 6, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) 
+ggsave(paste(GraphSave_path_AntRep, "AntRep_DIS.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+#AGE
+AllData_Rep_AntRep %>%
+  group_by(AgeRange) %>%
+  summarise(mean = mean(pct_AntRep), 
+            sem  = std_err(pct_AntRep)) %>%
+  ggplot(aes(
+    x      = AgeRange, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), colour = "red4", 
+             size = 4) +
+  geom_line(position  = position_dodge(0.4), colour = "red4", 
+            size = 1.5) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                size = 1.5,
+                position   = position_dodge(0.4), colour = "red4") +
+  labs(
+    title = "Mean anticipated response according to age", 
+    x     = "Age range (year)", 
+    y     = "Mean anticipated response (%)") +
+  scale_y_continuous(limits = c(0, 6), breaks = seq(0, 6, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) 
+
+ggsave(paste(GraphSave_path_AntRep, "AntRep_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+dodge = position_dodge(width = 0.4)
+
+AllData_Rep_AntRep %>%
+  ggplot(aes(x = AgeRange, y = pct_AntRep, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  # scale_y_continuous(limits = c(0, 80), breaks = seq(0, 80, by=10)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Mean anticipated response according to age", 
+    x     = "Age range (years)", 
+    y     = "Mean anticipated response (%)") 
+ggsave(paste(GraphSave_path_AntRep, "AntRep_AGE_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+```
+
+Graph stat : Outlier
+```{r}
+
+
+#AGE*CUE*DIS
+AllData_Rep_OutlierDisCueAge %>%
+  group_by(AgeRange, Cue, Dis) %>%
+  dplyr::summarise(mean = mean(pct_Outlier), sem = std_err(pct_Outlier)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    color = Cue, 
+    group = Cue,
+    linetype = Cue)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1,
+    position   = position_dodge(0.4)) +
+  geom_line(
+    position  = position_dodge(0.4),
+    size = 1
+  ) +
+  facet_wrap(~AgeRange)+
+  labs(
+    title = "Mean late response according to cue, distractor and age",
+    x     = "Distractor condition", 
+    y     = "Mean late response (ms)") +
+  # scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by=1)) +
+  # scale_color_manual(values = c("darkorchid4", "darkorchid4")) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_Outlier, "LateRep_AGE_CUE_DIS.png"), type = 'cairo', units = c("cm"), width = 40, height = 20)
+
+#DIS
+AllData_Rep_OutlierDis %>%
+  group_by(Dis) %>%
+  summarise(mean = mean(pct_Outlier), 
+            sem  = std_err(pct_Outlier)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4)) +
+  geom_line(position  = position_dodge(0.4)) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                position   = position_dodge(0.4)) +
+  labs(
+    title = "Mean late response according to distractor condition", 
+    x     = "Dis condition", 
+    y     = "Mean late response (%)") +
+  # scale_y_continuous(limits = c(0, 10), breaks = seq(0,10, by=2)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  
+  ggsave(paste(GraphSave_path_Outlier, "LateRep_Dis.png"), type = 'cairo')
+
+
+
+#AGE*DIS
+AllData_Rep_OutlierDisAge %>%
+  group_by(AgeRange, Dis) %>%
+  dplyr::summarise(mean = mean(pct_Outlier), sem = std_err(pct_Outlier)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    group = 1)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1,
+    position   = position_dodge(0.4)) +
+  geom_line(
+    position  = position_dodge(0.4),
+    size = 1
+  ) +
+  facet_wrap(~AgeRange)+
+  labs(
+    title = "Mean late response according distractor and age",
+    x     = "Distractor condition", 
+    y     = "Mean late response (ms)") +
+  # scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by=1)) +
+  # scale_color_manual(values = c("darkorchid4", "darkorchid4")) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_Outlier, "LateRep_AGE_DIS.png"), type = 'cairo', units = c("cm"), width = 40, height = 20)
+
+
+
+
+```
+
+Graph stat : Miss
+```{r}
+
+#AGE
+AllData_Rep_Miss  %>%
+  group_by(AgeRange) %>%
+  summarise(mean = mean(pct_Miss), 
+            sem  = sd(pct_Miss)) %>%
+  ggplot(aes(
+    x      = AgeRange, 
+    y      = mean, 
+    group  = 1)) +
+  geom_point(position = position_dodge(0.4), colour = "darkorchid4", 
+             size = 4) +
+  geom_line(position  = position_dodge(0.4), colour = "darkorchid4", 
+            size = 1.5) +
+  geom_errorbar(aes(ymin   = mean-sem, 
+                    ymax   = mean+sem),
+                width  = .2,
+                position   = position_dodge(0.4), colour = "darkorchid4", 
+                size = 1.5) +
+  labs(
+    title = "Mean missed response according to age", 
+    x     = "Age range (year)", 
+    y     = "Mean missed response (%)") +
+  # scale_y_continuous(limits = c(0, 8), breaks = seq(0,8, by=1)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_Miss, "Miss_AGE_et.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+AllData_Rep_Miss %>%
+  ggplot(aes(x = AgeRange, y = pct_Miss, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  # scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by=10)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Mean missed response according to age", 
+    x     = "Age range (years)", 
+    y     = "Mean missed response (%)") 
+ggsave(paste(GraphSave_path_Miss, "MissRep_AGE_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+#AGE*CUE*DIS
+AllData_Rep_Miss2 %>%
+  group_by(AgeRange, Cue, Dis) %>%
+  dplyr::summarise(mean = mean(pct_Miss), sem = std_err(pct_Miss)) %>%
+  ggplot(aes(
+    x      = Dis, 
+    y      = mean, 
+    color = Cue, 
+    group = Cue,
+    linetype = Cue)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1,
+    position   = position_dodge(0.4)) +
+  geom_line(
+    position  = position_dodge(0.4),
+    size = 1
+  ) +
+  facet_wrap(~AgeRange)+
+  labs(
+    title = "Mean missed response according to cue, distractor and age",
+    x     = "Distractor condition", 
+    y     = "Mean RT SD (ms)") +
+  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by=1)) +
+  # scale_color_manual(values = c("darkorchid4", "darkorchid4")) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_Miss, "Miss_AGE_CUE_DIS.png"), type = 'cairo', units = c("cm"), width = 40, height = 20)
+
+
+
+#AGE*CUE
+AllData_Rep_Miss2 %>%
+  group_by(AgeRange, Cue) %>%
+  dplyr::summarise(mean = mean(pct_Miss), sem = std_err(pct_Miss)) %>%
+  ggplot(aes(
+    x      = AgeRange, 
+    y      = mean, 
+    color = Cue, 
+    group = Cue,
+    linetype = Cue)) +
+  geom_point(
+    position = position_dodge(0.4), 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1,
+    position   = position_dodge(0.4)) +
+  geom_line(
+    position  = position_dodge(0.4),
+    size = 1
+  ) +
+  labs(
+    title = "Mean missed response according to cue and age",
+    x     = "Age range (year)", 
+    y     = "Mean RT SD (ms)") +
+  scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by=1)) +
+  # scale_color_manual(values = c("darkorchid4", "darkorchid4")) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_Miss, "Miss_AGE_CUE.png"), type = 'cairo', units = c("cm"), width = 40, height = 20)
+
+
+
+
+
+AllData_Rep_Miss %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss), AgeRange = unique(AgeRange)) %>%
+  ggplot(aes(x = Dis, y = m.miss, fill = Dis)) +
+  geom_point(position = position_dodge(0.2)) +
+  
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  facet_wrap(~AgeRange) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 9), 
+    legend.position = "none",  strip.background = element_rect(colour="gray94", fill="gray94"))+
+  
+  labs(
+    title = "Missed responses distribution according to distractor and age ", 
+    x = "Distractor condition", 
+    y = "Missed response (%)") +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "26_30") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_26_30.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "31_40") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_31_40.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "41_50") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_41_50.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "51_60") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_51_60.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "61_70") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_61_70.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+AllData_Rep_Miss %>%
+  filter(AgeRange == "71_90") %>%
+  group_by(Suj, Dis) %>%
+  dplyr::summarise(m.miss = mean(pct_Miss)) %>%
+  ggplot( aes(fill=Dis, y=m.miss, x=Suj)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0,100, by=20)) +
+  ggsave(paste(GraphSave_path_Miss, "Distribdot_MISS_SUJ_71_90.png"), type = 'cairo', units = c("cm"), width = 50, height = 10)
+
+
+```
+
+Graph stat : All
+```{r}
+
+
+# Graphique avec proportion pour chaque type de r?ponse
+AllData_Rep %>%
+  group_by(AgeRange) %>%
+  dplyr :: summarise(
+    g_OK       = sum(OK)/n()*100,
+    f_CueRep   = sum(CueRep)/n()*100,
+    e_FA       = sum(FA)/n()*100,
+    d_DisRep   = sum(DisRep)/n()*100,
+    c_AntRep   = sum(AntRep)/n()*100,
+    b_Outlier  = sum(Outlier)/n()*100,
+    a_Miss     = sum(Miss)/n()*100) %>%
+  gather(
+    key   = "type_rep", 
+    value = "pct", 
+    -AgeRange) %>%
+  ggplot(aes(y = pct, x = AgeRange, fill = type_rep)) +
+  geom_bar(stat = "identity", alpha=0.65) +  
+  scale_fill_manual(values = c("darkorchid4", "plum3",  "red4", "sienna2", "gold", "navy", "olivedrab3"), labels = c("Missed", "Late", "Anticipated", "Distractor", "Random", "Cue", "Correct")) + 
+  # scale_alpha_manual(0.02) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "Response type proportions according to age",  
+    x     = "Age range (years)", 
+    y     = "Proportion (%)") 
+ggsave(paste(GraphSave_path, "Response-type_proportion_AGE_alpha.png", sep=""), type = 'cairo',units = c("cm"), width = 25, height = 10)
+
+
+
+```
+
+Graph stat : sustained attention 
+```{r}
+
+
+
+#NoDis AGE
+SDRT %>%
+  group_by(AgeRange) %>%
+  dplyr::summarise(mean = mean(mean_SDRT_b), sem = std_err(mean_SDRT_b)) %>%
+  ggplot(aes(
+    x      = AgeRange, 
+    y    = mean)) +
+  geom_point( 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1.5) +
+  geom_line(group =1,
+            size = 1.5 
+  ) +
+  labs(
+    title = "RT SD (NoDis) according to age", 
+    x     = "Age (year)", 
+    y     = "Mean RTSD (ms)") +
+  scale_y_continuous(limits = c(300, 550), breaks = seq(300, 550, by=50)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) +
+  ggsave(paste(GraphSave_path_TTR, "SDRT_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+
+
+
+dodge = position_dodge(width = 0.4)
+
+SDRT %>%
+  group_by(Suj) %>%
+  dplyr::summarise(m = mean(mean_SDRT_b), sem = std_err(mean_SDRT_b), AgeRange = unique(AgeRange))  %>%
+  ggplot(aes(x = AgeRange, y = m, fill = AgeRange)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(size=0.5, alpha =0.3) +
+  scale_y_continuous(limits = c(0, 400), breaks = seq(0, 400, by=100)) +
+  scale_fill_viridis(option = "inferno", discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(option = "inferno", discrete = TRUE, alpha = 0.5) +
+  scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(
+    title = "RT+ SD (NoDis) according to age range", 
+    x     = "Age range (years)", 
+    y     = "Mean RT+ SD (ms)") 
+ggsave(paste(GraphSave_path_TTR, "SDRT_AGE_boxplotmean2.png", sep=""), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+SDRT$AgeRange <- as.factor(SDRT$AgeRange)
+
+#NoDis BLOCK
+SDRT %>%
+  group_by(bloc) %>%
+  dplyr::summarise(mean = mean(mean_SDRT_b), sem = std_err(mean_SDRT_b)) %>%
+  ggplot(aes(
+    x      = bloc, 
+    y    = mean)) +
+  geom_point( 
+    size = 4) +
+  geom_errorbar(aes(
+    ymin   = mean-sem, 
+    ymax   = mean+sem),
+    width  = .2,
+    size = 1.5) +
+  geom_line(group =1,
+            size = 1.5 
+  ) +
+  labs(
+    title = "RT SD (NoDis) according to age", 
+    x     = "Block", 
+    y     = "Mean RT SD (ms)") +
+  scale_y_continuous(limits = c(350, 450), breaks = seq(350, 450, by=25)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none')) 
+ggsave(paste(GraphSave_path_TTR, "SDRT_BLOCK.png"), type = 'cairo',  units = c("cm"), width = 20, height = 15)
+
+
+dodge = position_dodge(width = 0.4)
+
+SDRT %>%
+  ggplot(aes(x = bloc, y = mean_SDRT_b, fill = bloc)) +
+  stat_summary(fun.data = quantiles_95, geom="boxplot") +
+  geom_jitter(color="black", size=0.5) +
+  # scale_y_continuous(limits = c(-100, 400), breaks = seq(-100, 400, by=50)) +
+  scale_fill_viridis(discrete = TRUE,  alpha = 0.5) +
+  scale_color_viridis(discrete = TRUE, alpha = 0.5) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 14, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 14, hjust = 1),
+    panel.border = element_blank(),
+    axis.text    = element_text(size  = 12), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94"))+
+  labs(title="Mean RT SD according to block", 
+       x="Block", 
+       y="Mean SD RT (ms)")
+ggsave(paste(GraphSave_path_TTR, "Distrib_SDRT_BLOCK_boxplotmean.png"), type = 'cairo', units = c("cm"), width = 20, height = 10)
+
+
+
+
+```
+
+Graph stat : upper & lower limit
+```{r}
+
+AllData$Age <- ordered(AllData$Age)
+
+AllData %>%
+  dplyr::select(Suj, Age, LowerLimit, UpperLimit) %>%
+  group_by(Suj) %>%
+  dplyr :: summarise(Age = unique(Age), LowerLimit = unique(LowerLimit)) %>%
+  group_by(Age)%>%
+  dplyr::summarise(meanL = mean(LowerLimit), semL = std_err(LowerLimit)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = meanL)) +
+  geom_point() +
+  geom_line(group  = 1) +
+  labs(
+    title = "LowerLimit according to age", 
+    x     = "Age", 
+    y     = "ms") +
+  scale_y_continuous(limits = c(100, 300), breaks = seq(100,300, by=50)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+
+
+AllData %>%
+  dplyr::select(Suj, Age, UpperLimit) %>%
+  group_by(Suj) %>%
+  dplyr :: summarise(Age = unique(Age), UpperLimit = unique(UpperLimit)) %>%
+  group_by(Age)%>%
+  dplyr::summarise(meanU = mean(UpperLimit), semU = std_err(UpperLimit)) %>%
+  # mutate(Age=as.numeric(Age)) %>%
+  ggplot(aes(
+    x      = Age, 
+    y      = meanU)) +
+  geom_point() +
+  geom_errorbar(aes(ymin   = meanU-semU, 
+                    ymax   = meanU+semU))+
+  geom_line(group  = 1) +
+  labs(
+    title = "UpperLimit according to age", 
+    x     = "Age", 
+    y     = "ms") +
+  scale_y_continuous(limits = c(300, 1000), breaks = seq(300, 1000, by=100)) +
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 12, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 11, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 11, hjust = 1),
+    axis.text    = element_text(size  = 10 ),
+    panel.border = element_blank(),
+    strip.background = element_rect(colour="gray94", fill="gray94") +
+      theme(legend.position ='none'))
+
+
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "21_25") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 150), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 21-25-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_21_25yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "26_30") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 150), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 26-30-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_26_30yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "31_40") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 150), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 31-40-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_31_40yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "41_50") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 150), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 41-50-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_41_50yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "51_60") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 150), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 51-60-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_51_60yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "61_70") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 200), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 61-70-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_61_70yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+AllData %>%
+  drop_na(TTR) %>%
+  filter(Dis == "NoDis") %>%
+  filter(AgeRange == "71_90") %>%
+  ggplot(aes(x = TTR)) +
+  scale_y_continuous(limits = c(0, 600), breaks = seq(0, 600, by=50)) +
+  scale_x_continuous(limits = c(-1200, 3600), breaks = seq(-1200, 3600, by=200)) +
+  geom_histogram(breaks = seq(-1200, 3600, by=50), color = "black", fill = "gray") +
+  geom_vline(aes(xintercept = 0), color = "red", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = -1150), color = "blue", linetype = "dashed", size = 0.6) +
+  geom_vline(aes(xintercept = 200), color = "orange", linetype = "dashed", size = 0.6) +
+  labs(title = "Reaction times distribution in NoDis 71-86-year-olds") 
+ggsave(paste(GraphSave_path_TTR, "Distrib_TTR_lowerlim_71_86yo.png"), type = 'cairo', units = c("cm"), width = 30, height = 15)
+
+
+
+
+```
+
+Visu population characteristics
+```{r}
+
+
+
+
+
+
+
+
+
+# samples by age in units
+AllData %>%
+  group_by(Suj) %>%
+  dplyr::summarise(AgeRange = unique(AgeRange)) %>%
+  group_by(AgeRange) %>%
+  dplyr :: summarise(nb = n()) %>%
+  ggplot(aes(y=nb, x=AgeRange, fill=nb)) +
+  geom_bar(stat="identity", fill="steelblue4", alpha=.7) +
+  scale_y_continuous(breaks=seq(0, 35, by=5)) +
+    scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(  
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+    axis.text    = element_text(size  = 12),
+    panel.border = element_blank(), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94")) +
+      labs(
+        title = "Sample by age groups",  
+        x     = "Age ", 
+        y     = "Number of participant") 
+    ggsave(paste(GraphSave_path_pop, "Sample_AGE.png"), type = 'cairo')
+    
+    
+    AllData %>%
+      group_by(Suj) %>%
+      dplyr::summarise(AgeRange = unique(AgeRange), Gender = unique(GENDER)) %>%
+      group_by(AgeRange, Gender) %>%
+      dplyr :: summarise(nb = n()) %>%
+      ggplot(aes(y=nb, x=AgeRange, fill=Gender)) +
+      geom_bar(stat="identity", alpha=.7) +
+      scale_fill_manual(values = c("steelblue4", "steelblue1"))+
+      scale_y_continuous(breaks=seq(0, 35, by=5)) +
+      scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12),
+        panel.border = element_blank(), 
+        strip.background = element_rect(colour="gray94", fill="gray94")) +
+      labs(
+        title = "Sample by age groups",  
+        x     = "Age ", 
+        y     = "Number of participant") 
+    ggsave(paste(GraphSave_path_pop, "Sample_AGE2.png"), type = 'cairo')
+    
+    
+    
+    
+    
+    # mean ASRS score
+AllData %>%
+  group_by(Suj) %>%
+  dplyr::summarise(TOTAL_ASRS = unique(TOTAL_ASRS), AgeRange = unique(AgeRange)) %>%
+  group_by(AgeRange) %>%
+  dplyr :: summarise(tot = mean(TOTAL_ASRS)) %>%
+  ggplot(aes(y=tot, x=AgeRange, fill=tot)) +
+  geom_bar(stat="identity", fill="darkgreen", alpha=.7) +
+  # scale_y_continuous(breaks=seq(0, 35, by=5)) +
+    scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+  theme_bw() +
+  theme(  
+    plot.title   = element_text(color = "black", size = 14, face = "bold"),
+    axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+    axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+    axis.text    = element_text(size  = 12),
+    panel.border = element_blank(), 
+    legend.position = "none",
+    strip.background = element_rect(colour="gray94", fill="gray94")) +
+      labs(
+        title = "ASRS score by age groups",  
+        x     = "Age ", 
+        y     = "ASRS score") 
+    ggsave(paste(GraphSave_path_pop, "ASRS_AGE.png"), type = 'cairo')
+    
+    
+    
+    
+        # mean ASRS score
+    
+
+    
+    
+    AllData %>%
+      mutate(ASRS1to6 = ASRS_1 + ASRS_2 + ASRS_3 + ASRS_4 + ASRS_5 + ASRS_6) %>%
+      drop_na(ASRS1to6) %>%
+      group_by(Suj) %>%
+      dplyr::summarise(ASRS1to6 = unique(ASRS1to6), AgeRange = unique(AgeRange)) %>%
+      group_by(AgeRange) %>%
+      dplyr :: summarise(tot = mean(ASRS1to6)) %>%
+      ggplot(aes(y=tot, x=AgeRange, fill=tot)) +
+      geom_bar(stat="identity", fill="darkgreen", alpha=.7) + 
+      # scale_y_continuous(breaks=seq(0, 35, by=5)) +
+      scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12),
+        panel.border = element_blank(), 
+        legend.position = "none",
+        strip.background = element_rect(colour="gray94", fill="gray94")) +
+      labs(
+        title = "ASRS score (items 1 to 6) by age groups",  
+        x     = "Age ", 
+        y     = "ASRS score") 
+    ggsave(paste(GraphSave_path_pop, "ASRS1to6_AGE.png"), type = 'cairo')
+    
+    
+    
+    #BLOCK ORDER proportion
+    AllData %>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), ORDRE_BLOC = unique(ORDRE_BLOC)) %>%
+      group_by(AgeRange, ORDRE_BLOC) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, ORDRE_BLOC, proportion) %>%
+      pivot_wider(names_from = ORDRE_BLOC, values_from = proportion) %>%
+      gather(key = "Block_order",
+             value = "proportion",
+             -AgeRange) %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = Block_order)) +
+      geom_bar(stat = "identity", alpha=.7) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      # scale_fill_manual(values = c("chartreuse4", "darkorange3"))+
+      labs(
+        title = "Block order proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)") +
+      ggsave(paste(GraphSave_path_pop, "BlockOrder_proportion_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    
+    
+    #GENDER proportion
+    AllData %>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), GENDER = unique(GENDER)) %>%
+      group_by(AgeRange, GENDER) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, GENDER, proportion) %>%
+      pivot_wider(names_from = GENDER, values_from = proportion) %>%
+      gather(key = "Gender",
+             value = "proportion",
+             -AgeRange) %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = Gender)) +
+      geom_bar(stat = "identity", alpha=.7) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      scale_fill_manual(values = c("chartreuse4", "darkorange3"))+
+      labs(
+        title = "Gender type proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)") +
+      ggsave(paste(GraphSave_path_pop, "Gender_proportion_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    
+    
+    #HANDEDNESS
+    AllData %>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), LATERALITE = unique(LATERALITE)) %>%
+      group_by(AgeRange, LATERALITE) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, LATERALITE, proportion) %>%
+      pivot_wider(names_from = LATERALITE, values_from = proportion) %>%
+      gather(key = "Handedness",
+             value = "proportion",
+             -AgeRange) %>%
+      mutate(Handedness = fct_reorder(Handedness, proportion))  %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = Handedness)) +
+      geom_bar(stat = "identity", alpha=.85) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      scale_fill_manual(values = c("darkseagreen2", "bisque2", "cadetblue2"),
+                        labels = c("Left", "Right", "Ambidextrous")) +
+      labs(
+        title = "Handedness type proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)") +
+      ggsave(paste(GraphSave_path_pop, "Handedness_proportion_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    AllData$CSP_ADULTE <- as.factor(AllData$CSP_ADULTE)
+    
+    #CSP
+    AllData %>%
+      drop_na(CSP_ADULTE)%>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), CSP_ADULTE = unique(CSP_ADULTE)) %>%
+      group_by(AgeRange, CSP_ADULTE) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, CSP_ADULTE, proportion) %>%
+      pivot_wider(names_from = CSP_ADULTE, values_from = proportion) %>%
+      gather(key = "SES",
+             value = "proportion",
+             -AgeRange) %>%
+      mutate(Handedness = fct_reorder(SES, proportion))  %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = SES)) +
+      geom_bar(stat = "identity") +
+      # geom_bar(stat = "identity", alpha=.7) +
+      scale_fill_manual(
+        values = c(
+          "deepskyblue2",
+          "aquamarine3",
+          "navyblue",
+          "deepskyblue4",
+          "darkslategrey",
+          "cadetblue1",
+          "aquamarine4"), 
+        name="Socio-economical statuses",
+        labels=c(
+          "Small employers and own account works", 
+          "Nerver worked or long term unemployed", 
+          "Managerial and professional occupation",
+          "Lower supervisory and technical occupations",
+          "Semi-routine and routine occupations",
+          "Intermediate occupations",
+          "Retired")) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-86"))+
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      # scale_fill_manual(values = c("darkseagreen2", "bisque2", "cadetblue2"),
+      #                   labels = c("Ambidextrous", "Right", "Left")) +
+      labs(
+        title = "SES type proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)")
+    ggsave(paste(GraphSave_path_pop, "SES_proportion_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    
+    
+    
+    
+    #CSP POUR HOGREFFE
+    AllData %>%
+      drop_na(CSP_ADULTE)%>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), CSP_ADULTE = unique(CSP_ADULTE)) %>%
+      group_by(AgeRange, CSP_ADULTE) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, CSP_ADULTE, proportion) %>%
+      pivot_wider(names_from = CSP_ADULTE, values_from = proportion) %>%
+      gather(key = "SES",
+             value = "proportion",
+             -AgeRange) %>%
+      mutate(Handedness = fct_reorder(SES, proportion))  %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = SES)) +
+      geom_bar(stat = "identity") +
+      # geom_bar(stat = "identity", alpha=.7) +
+      scale_fill_manual(
+        values = c(
+          "deepskyblue2",
+          "aquamarine3",
+          "navyblue",
+          "deepskyblue4",
+          "darkslategrey",
+          "cadetblue1",
+          "aquamarine4"), 
+        name="Socio-economical statuses",
+        labels=c(
+          "Small employers and own account works", 
+          "Nerver worked or long term unemployed", 
+          "Managerial and professional occupation",
+          "Lower supervisory and technical occupations",
+          "Semi-routine and routine occupations",
+          "Intermediate occupations",
+          "Retired")) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      scale_x_discrete(labels = c("21-25", "26-30", "31-40", "41-50", "51-60", "61-70", "71-90"))+
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      # scale_fill_manual(values = c("darkseagreen2", "bisque2", "cadetblue2"),
+      #                   labels = c("Ambidextrous", "Right", "Left")) +
+      labs(
+        title = "SES type proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)")
+    ggsave(paste(GraphSave_path_pop, "SES_proportion_AGE_hogreffe.png", sep=""), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    
+    
+    
+    
+    
+    
+    
+    #ETUDE
+    AllData %>%
+      drop_na(ETUD_ADULTE)%>%
+      group_by(Suj) %>%
+      summarise(AgeRange = unique(AgeRange), ETUD_ADULTE = unique(ETUD_ADULTE)) %>%
+      group_by(AgeRange, ETUD_ADULTE) %>% 
+      summarise(n = length(Suj)) %>% # count per gender
+      ungroup %>% 
+      group_by(AgeRange) %>% 
+      mutate(proportion = n / sum(n)) %>%
+      dplyr::select(AgeRange, ETUD_ADULTE, proportion) %>%
+      pivot_wider(names_from = ETUD_ADULTE, values_from = proportion) %>%
+      gather(key = "Education",
+             value = "proportion",
+             -AgeRange) %>%
+      mutate(Handedness = fct_reorder(Education, proportion))  %>%
+      ggplot(aes(y = proportion*100, x = AgeRange, fill = Education)) +
+      geom_bar(stat = "identity", alpha=.7) +
+      scale_y_continuous(breaks=seq(0, 100, by=10)) +
+      theme_bw() +
+      theme(  
+        plot.title   = element_text(color = "black", size = 14, face = "bold"),
+        axis.title.x = element_text(color = "black", size = 13, hjust = 1),
+        axis.title.y = element_text(color = "black", size = 13, hjust = 1),
+        axis.text    = element_text(size  = 12 )
+      ) +
+      # scale_fill_manual(values = c("darkseagreen2", "bisque2", "cadetblue2"),
+      #                   labels = c("Ambidextrous", "Right", "Left")) +
+      labs(
+        title = "Education type proportions according to age",  
+        x     = "Age (year)", 
+        y     = "Proportion (%)") +
+      ggsave(paste(GraphSave_path_pop, "Education_proportion_AGE.png"), type = 'cairo', units = c("cm"), width = 20, height = 15)
+    
+    
+    ```
+    
+    
+    
+    
+    
+    
+    ```
